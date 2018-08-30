@@ -22,6 +22,9 @@ import gov.nasa.jpf.annotation.FilterField;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 /**
@@ -185,5 +188,22 @@ public class File
   
   public static File createTempFile(String prefix, String suffix) throws IOException  {
     return createTempFile(prefix, suffix, null);
+  }
+  
+  private transient volatile Path filePath = null;
+  
+  private native String normalize0();
+  
+  public Path toPath() {
+    if(filePath != null) {
+      return filePath;
+    }
+    synchronized(this) {
+      if(filePath != null) {
+        return filePath;
+      }
+      filePath = FileSystems.getDefault().getPath(normalize0());
+    }
+    return filePath;
   }
 }

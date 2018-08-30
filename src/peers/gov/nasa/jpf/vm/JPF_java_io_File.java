@@ -18,6 +18,7 @@
 
 package gov.nasa.jpf.vm;
 
+import gov.nasa.jpf.Config;
 import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.vm.ElementInfo;
 import gov.nasa.jpf.vm.MJIEnv;
@@ -35,6 +36,11 @@ import java.net.URL;
  * object around and modify the model class accordingly
  */
 public class JPF_java_io_File extends NativePeer {
+  
+  public static boolean init(Config conf) {
+    JPF_gov_nasa_jpf_nio_JPFPath.init(conf);
+    return true;
+  }
 
   static File getFile(MJIEnv env, int objref) {
     int fnref = env.getReferenceField(objref, "filename");
@@ -191,6 +197,12 @@ public class JPF_java_io_File extends NativePeer {
     }
 
     return rootResultRef;
+  }
+  
+  @MJI
+  public int normalize0____Ljava_lang_String_2(MJIEnv env, int objRef) {
+    String name = env.getStringField(objRef, "filename");
+    return env.newString(new File(name).getPath());
   }
   // <2do> ..and lots more
 }

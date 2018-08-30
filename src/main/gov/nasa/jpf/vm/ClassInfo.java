@@ -673,7 +673,10 @@ public class ClassInfo extends InfoObject implements Iterable<MethodInfo>, Gener
       // create and initialize an instance field for it
       FieldInfo fi = FieldInfo.create(mname, mtype, 0);
       fi.linkToClass(this, idx, off);
-      fi.setGenericSignature(genericSignature);
+      if(!genericSignature.isEmpty()) {
+        assert genericSignature.startsWith("()");
+        fi.setGenericSignature(genericSignature.substring(2));
+      }
       iFields[idx++] = fi;
       off += fi.getStorageSize();
 
