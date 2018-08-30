@@ -243,6 +243,23 @@ public class JPF_java_lang_System extends NativePeer {
     return 0;
   }
   
+  @MJI
+  public int getEnvKV_____3Ljava_lang_String_2 (MJIEnv env, int clsObjRef){
+  	Map<String, String> p = System.getenv();
+    int n = p.size() * 2;
+    int aref = env.newObjectArray("Ljava/lang/String;", n);
+    int i=0;
+    
+    for (Map.Entry<String,String> e : p.entrySet() ){
+      env.setReferenceArrayElement(aref,i++, 
+                                   env.newString(e.getKey()));
+      env.setReferenceArrayElement(aref,i++,
+                                   env.newString(e.getValue()));
+    }
+    
+    return aref;
+  }
+  
   // <2do> - this break every app which uses time delta thresholds
   // (sort of "if ((t2 - t1) > d)"). Ok, we can't deal with
   // real time, but we could at least give some SystemState dependent

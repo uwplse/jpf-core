@@ -20,6 +20,8 @@ package java.lang;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.channels.Channel;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -37,6 +39,8 @@ public class System {
   public static InputStream in; // new BufferedInputStream(...);  // <2do> not yet
   public static PrintStream out;
   public static PrintStream err;
+
+  private static Map<String, String> theEnv;
   
   static {
 
@@ -54,6 +58,17 @@ public class System {
         properties.put(kv[i], kv[i+1]);
       }
     }
+
+    final String[] envKV = getEnvKV();
+    final Map<String, String> envTemp = new HashMap<>();
+    for(int i = 0; i < envKV.length; i+=2) {
+      final String key = envKV[i];
+      final String value = envKV[i+1];
+      if(key != null && value != null) {
+      	envTemp.put(key, value);
+      }
+    }
+    theEnv = Collections.unmodifiableMap(envTemp);
 
     // this is the Java 6 sun.misc.SharedSecrets backdoor mechanism which I
     // would have prefered not to learn about. It's a mess WRT Java 1.5 / 6 compatibility
@@ -144,10 +159,12 @@ public class System {
   public static native long currentTimeMillis();
   public static native long nanoTime();
 
+  public static native String[] getEnvKV();
+
   //--- environment
   public static native String getenv (String key);
   public static Map<String,String> getenv() {
-    throw new UnsupportedOperationException("getenv() not yet supported");
+    return theEnv;
   }
 
   //--- security manager
