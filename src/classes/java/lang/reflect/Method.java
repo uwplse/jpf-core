@@ -19,14 +19,18 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import sun.reflect.generics.repository.ConstructorRepository;
+import sun.reflect.generics.repository.MethodRepository;
+
 /**
  * minimal Method reflection support.
  * Note that we share peer code between Method and Constructor (which aren't
  * really different on the JPF side), so don't change field names!
  */
-public final class Method extends AccessibleObject implements Member {
+public final class Method extends Executable implements Member, MethodGenericHandler { 
   int regIdx; // the link to the corresponding MethodInfo
   String name; // deferred set by the NativePeer getName()
+  private transient MethodRepository genericInfo;
 
   @Override
   public native String getName();
@@ -41,7 +45,12 @@ public final class Method extends AccessibleObject implements Member {
   public native int getModifiers();
   public native Class<?> getReturnType();
   public native Class<?>[] getParameterTypes();
-  public native Type[] getGenericParameterTypes();
+  
+  @Override
+  public int getParameterCount() {
+    return getParameterTypes().length;
+  }
+  
   public native Class<?>[] getExceptionTypes();
 
   @Override
@@ -79,5 +88,72 @@ public final class Method extends AccessibleObject implements Member {
 
   public boolean isBridge (){
     return (getModifiers() & Modifier.BRIDGE) != 0;
+  }
+  
+  @Override
+  public AnnotatedType getAnnotatedReturnType() {
+      return getAnnotatedReturnType0(getReturnType());
+  }
+  
+  @Override
+  byte[] getAnnotationBytes() {
+    throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  Executable getRoot() {
+    // we never actually copy
+    return null;
+  }
+
+  @Override
+  void handleParameterNumberMismatch(int resultLength, int numParameters) {
+    this.handleParameterNumberMismatch0(resultLength, numParameters);
+  }
+  
+  public native String getGenericSignature(); 
+  
+  @Override
+  boolean hasGenericInformation() {
+      return (getGenericSignature() != null);
+  }
+  
+  @Override
+  void specificToGenericStringHeader(StringBuilder sb) {
+    this.specificToGenericStringHeader0(sb);
+  }
+  
+  @Override
+  void specificToStringHeader(StringBuilder sb) {
+    this.specificToGenericStringHeader0(sb);
+  }
+  
+  @Override
+  public MethodRepository getCachedGenericInfo() {
+    return genericInfo;
+  }
+  
+  @Override
+  public void setCachedGenericInfo(MethodRepository info) {
+    genericInfo = info;
+  }
+  
+  @Override
+  public Method getMethod() {
+    return this;
+  }
+  
+  @Override
+  public TypeVariable<?>[] getTypeParameters() {
+    return this.getTypeParameters0();
+  }
+  
+  @Override
+  ConstructorRepository getGenericInfo() {
+    return this.getGenericInfo0();
+  }
+  
+  public Type getGenericReturnType() {
+    return this.getGenericReturnType0();
   }
 }

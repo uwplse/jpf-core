@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.ClassGenericHandler;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericDeclaration;
@@ -34,6 +35,10 @@ import java.util.Map;
 
 import sun.reflect.ConstantPool;
 import sun.reflect.annotation.AnnotationType;
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.repository.ClassRepository;
+import sun.reflect.generics.scope.ClassScope;
 
 /**
  * MJI model class for java.lang.Class library abstraction
@@ -50,7 +55,7 @@ import sun.reflect.annotation.AnnotationType;
  * Java assertion support
  */
 @SuppressWarnings("unused")  // native peer uses
-public final class Class<T> implements Serializable, GenericDeclaration, Type, AnnotatedElement {
+public final class Class<T> implements Serializable, GenericDeclaration, Type, AnnotatedElement, ClassGenericHandler<T> {
 
   /** don't use serialVersionUID from JDK 1.1 for interoperability */
   private static final long serialVersionUID = 3206093459760846163L + 1;
@@ -276,19 +281,19 @@ public final class Class<T> implements Serializable, GenericDeclaration, Type, A
   native void setAnnotationType (AnnotationType at);
 
   native AnnotationType getAnnotationType();
-  
+
   @Override
+  @SuppressWarnings("unchecked")
   public TypeVariable<Class<T>>[] getTypeParameters() {
-    throw new UnsupportedOperationException();
+    return this.getTypeParameters0();
   }
-  
-  public Type getGenericSuperclass() {
-    throw new UnsupportedOperationException();
-  }
-  
-  public Type[] getGenericInterfaces() {
-    throw new UnsupportedOperationException();
-  }
+
+  // Generic info repository; lazily initialized
+  private volatile transient ClassRepository genericInfo;
+
+  // Generic signature handling
+  public native String getGenericSignature0();
+
 
   public Object[] getSigners() {
     throw new UnsupportedOperationException();
@@ -358,5 +363,28 @@ public final class Class<T> implements Serializable, GenericDeclaration, Type, A
   public boolean isSynthetic (){
     final int SYNTHETIC = 0x00001000;
     return (getModifiers() & SYNTHETIC) != 0;
+  }
+
+  @Override
+  public Class<T> getSelf() {
+    return this;
+  }
+
+  @Override
+  public void setCachedGenericInfo(ClassRepository genericInfo) {
+    this.genericInfo = genericInfo;
+  }
+
+  @Override
+  public ClassRepository getCachedGenericInfo() {
+    return this.genericInfo;
+  }
+  
+  public Type getGenericSuperclass() {
+    return this.getGenericSuperclass0();
+  }
+  
+  public Type[] getGenericInterfaces() {
+    return this.getGenericInterfaces0();
   }
 }

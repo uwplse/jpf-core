@@ -808,6 +808,18 @@ public class JPF_java_lang_Class extends NativePeer {
   }
 
   @MJI
+  public int getGenericSignature0____Ljava_lang_String_2(MJIEnv env, int clsRef) {
+    ClassInfo ci = env.getReferredClassInfo(clsRef);
+    String genericSig = ci.getGenericSignature();
+    if(genericSig == null) {
+      return MJIEnv.NULL;
+    } else {
+      return env.newString(genericSig);
+    }
+  }
+
+
+  @MJI
   public int getCanonicalName____Ljava_lang_String_2 (MJIEnv env, int clsRef){
     ClassInfo ci = env.getReferredClassInfo(clsRef);
     return env.newString(getCanonicalName(ci));

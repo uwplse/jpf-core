@@ -13,10 +13,14 @@ sourceSets {
         java.outputDir = file("${buildDir}/examples")
         compileClasspath += sourceSets.main.output
     }
+    jdkLib {
+        java.srcDirs = ["src/jdkLib"]
+        java.outputDir = file("${buildDir}/jdkLib")
+    }
     classes {
         java.srcDirs = ["src/classes"]
         java.outputDir = file("${buildDir}/classes")
-        compileClasspath += sourceSets.main.output + sourceSets.annotations.output
+        compileClasspath += sourceSets.main.output + sourceSets.annotations.output + sourceSets.jdkLib.output
     }
     peers {
         java.srcDirs = ["src/peers"]

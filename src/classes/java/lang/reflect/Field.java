@@ -19,9 +19,15 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-public final class Field extends AccessibleObject implements Member {
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.repository.FieldRepository;
+import sun.reflect.generics.scope.ClassScope;
+
+public final class Field extends AccessibleObject implements Member, FieldGenericHandler {
   int regIdx; // the link to the corresponding FieldInfo
   String name; // deferred set by the NativePeer getName()
+  private FieldRepository genericInfo;
 
   public String toGenericString() {
 	  // TODO: return real generic string
@@ -85,10 +91,27 @@ public final class Field extends AccessibleObject implements Member {
   public boolean isEnumConstant (){
     return (getModifiers() & Modifier.ENUM) != 0;
   }
-
+  
+  public Type getGenericType() {
+    return this.getGenericType0();
+  }
+  
+  public native String getGenericSignature();
+  
+  
   @Override
   public native int hashCode ();
 
   @Override
   public native Annotation[] getDeclaredAnnotations ();
+
+  @Override
+  public void setCachedGenericInfo(FieldRepository genericInfo) {
+    this.genericInfo = genericInfo;
+  }
+
+  @Override
+  public FieldRepository getCachedGenericInfo() {
+    return genericInfo;
+  }
 }

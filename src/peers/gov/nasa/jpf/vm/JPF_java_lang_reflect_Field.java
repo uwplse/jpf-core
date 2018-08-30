@@ -844,4 +844,10 @@ public class JPF_java_lang_reflect_Field extends NativePeer {
   public int getDeclaredAnnotations_____3Ljava_lang_annotation_Annotation_2 (MJIEnv env, int objRef){
     return getAnnotations_____3Ljava_lang_annotation_Annotation_2(env, objRef);
   }
+  
+  @MJI
+  public int getGenericSignature____Ljava_lang_String_2(MJIEnv env, int objRef) {
+    FieldInfo fi = getFieldInfo(env, objRef);
+    return env.newString(fi.getGenericSignature());
+  }
 }

@@ -63,6 +63,21 @@ task createJpfClassesJar(type: Jar) {
     }
 }
 
+
+task createJpfJdkLibJar(type: Jar) {
+	archiveName = "jpf-jdklib.jar"
+	destinationDir = file("${buildDir}")
+
+	group "JPF Jars"
+	description = "Creates the ${archiveName} file."
+
+	dependsOn compile
+
+	from sourceSets.jdkLib.java.outputDir
+}
+
+
+
 task createJpfJar(type: Jar) {
     archiveName = "jpf.jar"
     destinationDir = file("${buildDir}")
@@ -190,6 +205,7 @@ task buildJars {
     dependsOn createClassloaderSpecificTestsJar
     dependsOn createAnnotationsJar
     dependsOn createJpfClassesJar
+    dependsOn createJpfJdkLibJar
     dependsOn createJpfJar
     dependsOn createRunJpfJar
     dependsOn createRunTestJar

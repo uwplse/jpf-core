@@ -19,6 +19,8 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
+import sun.reflect.generics.repository.ConstructorRepository;
+
 /**
  * (incomplete) support for consructor reflection
  * 
@@ -32,10 +34,11 @@ import java.lang.annotation.Annotation;
  * own serialization ctor objects - that's probably going away
  * once we replace ObjectStreamClass
  */
-public /*final*/ class Constructor <T> extends AccessibleObject implements Member {
+public /*final*/ class Constructor <T> extends Executable implements Member, ConstructorGenericHandler<T> {
   
   protected int regIdx;
   protected String name;
+  private ConstructorRepository genericInfo;
 
   @Override
   public native String getName();
@@ -46,6 +49,13 @@ public /*final*/ class Constructor <T> extends AccessibleObject implements Membe
   public native int getModifiers();
   public native Class<?> getReturnType();
   public native Class<?>[] getParameterTypes();
+  @Override
+  public int getParameterCount() {
+    return getParameterTypes().length;
+  }
+  
+  @Override
+  public native Class<?>[] getExceptionTypes();
   
   @Override
   public native Class<T> getDeclaringClass();
@@ -77,4 +87,68 @@ public /*final*/ class Constructor <T> extends AccessibleObject implements Membe
   public native int hashCode ();
 
   public native String toGenericString ();
+  
+  @Override
+  public AnnotatedType getAnnotatedReturnType() {
+    return getAnnotatedReturnType0(getDeclaringClass());
+  }
+  
+  @Override
+  byte[] getAnnotationBytes() {
+    throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  Executable getRoot() {
+    return null;
+  }
+
+  
+  @Override
+  boolean hasGenericInformation() {
+    return getSignature() != null;
+  }
+  
+  public native String getSignature();
+
+  
+  @Override
+  ConstructorRepository getGenericInfo() {
+    return this.getGenericInfo0();
+  }
+  
+  @Override
+  public TypeVariable<?>[] getTypeParameters() {
+    return this.getTypeParameters0();
+  }
+  
+  @Override
+  public ConstructorRepository getCachedGenericInfo() {
+    return genericInfo;
+  }
+  
+  @Override
+  public void setCachedGenericInfo(ConstructorRepository info) {
+    this.genericInfo = info;
+  }
+  
+  @Override
+  public Constructor<T> getConstructor() {
+    return this;
+  }
+  
+  @Override
+  void handleParameterNumberMismatch(int arg0, int arg1) {
+    this.handleParameterNumberMismatchInternal(arg0, arg1);
+  }
+  
+  @Override
+  void specificToGenericStringHeader(StringBuilder sb) {
+    this.specificToGenericStringHeader0(sb);
+  }
+  
+  @Override
+  void specificToStringHeader(StringBuilder sb) {
+    this.specificToStringHeader0(sb);
+  }
 }

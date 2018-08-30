@@ -17,14 +17,14 @@
  */
 package gov.nasa.jpf.vm;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.MethodInfoRegistry;
 import gov.nasa.jpf.util.RunListener;
 import gov.nasa.jpf.util.RunRegistry;
-
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 
 public class JPF_java_lang_reflect_Method extends NativePeer {
 
@@ -114,7 +114,7 @@ public class JPF_java_lang_reflect_Method extends NativePeer {
     return getParameterTypes(env, getMethodInfo(env, objRef));
   }
   
-  int getExceptionTypes(MJIEnv env, MethodInfo mi) {
+  static int getExceptionTypes(MJIEnv env, MethodInfo mi) {
     ThreadInfo ti = env.getThreadInfo();
     String[] exceptionNames = mi.getThrownExceptionClassNames();
      
@@ -144,6 +144,19 @@ public class JPF_java_lang_reflect_Method extends NativePeer {
   @MJI
   public int getExceptionTypes_____3Ljava_lang_Class_2 (MJIEnv env, int objRef) {
     return getExceptionTypes(env, getMethodInfo(env, objRef));
+  }
+  
+  static int getGenericSig(MJIEnv env, MethodInfo mi) {
+    String s = mi.getGenericSignature();
+    if(s.isEmpty()) {
+      return MJIEnv.NULL;
+    }
+    return env.newString(s);
+  }
+  
+  @MJI
+  public int getGenericSignature____Ljava_lang_String_2(MJIEnv env, int objRef) {
+    return getGenericSig(env, getMethodInfo(env, objRef));
   }
   
   @MJI

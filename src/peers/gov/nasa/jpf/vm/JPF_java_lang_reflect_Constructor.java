@@ -121,6 +121,16 @@ public class JPF_java_lang_reflect_Constructor extends NativePeer {
       return objRef;
     }
   }
+  
+  @MJI
+  public int getSignature____Ljava_lang_String_2(MJIEnv env, int objRef) {
+    return JPF_java_lang_reflect_Method.getGenericSig(env, getMethodInfo(env, objRef));
+  }
+  
+  @MJI
+  public int getExceptionTypes_____3Ljava_lang_Class_2(MJIEnv env, int objRef) {
+    return JPF_java_lang_reflect_Method.getExceptionTypes (env, getMethodInfo(env,objRef));
+  }
     
   @MJI
   public int getParameterTypes_____3Ljava_lang_Class_2 (MJIEnv env, int objRef){
