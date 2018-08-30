@@ -1148,6 +1148,8 @@ public class MJIEnv {
           arg[i] = getFloatObject(ref);
         } else if (clsName.equals("java.lang.Double")) {
           arg[i] = getDoubleObject(ref);
+        } else if(clsName.equals("java.util.Date")) {
+          arg[i] = new Date(this.getLongField(ref, "fastTime"));
         } else {
           // need a toString() here
           arg[i] = "??";

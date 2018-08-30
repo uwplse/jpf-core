@@ -20,10 +20,15 @@ package java.lang;
 
 import java.io.ObjectStreamField;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -325,7 +330,28 @@ implements java.io.Serializable, Comparable<String>, CharSequence {
 		return this;
 	}
 	native public char[] toCharArray();
-	native public static String format(String format, Object... args);
+	native public static String format0(String format, Object... args);
+	public static String format(String format, Object... args) {
+	    Object[] toStringArgs = new Object[args.length];
+	    for(int i = 0; i < args.length; i++) {
+	      Object o = args[i];
+	      if(o == null) {
+	        args[i] = "null";
+	        continue;
+	      }
+	      if(o instanceof Boolean || o instanceof Byte || o instanceof Character || o instanceof Short || o instanceof Integer 
+	          || o instanceof Long || o instanceof Float || o instanceof Double
+	          || o instanceof Date
+	          || o instanceof BigDecimal || o instanceof BigInteger) {
+	        toStringArgs[i] = o;
+	      } else if(o instanceof Calendar) {
+	        toStringArgs[i] = ((Calendar)o).getTime();
+	      } else {
+	        toStringArgs[i] = Objects.toString(o);
+	      }
+	    }
+	    return format0(format, args);
+	}
 	native public static String format(Locale l, String format, Object... args);
 	public static String valueOf(Object x){
 		// can't translate arbitrary object
