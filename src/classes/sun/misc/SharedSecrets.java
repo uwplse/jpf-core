@@ -20,6 +20,8 @@ package sun.misc;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.ObjectInputStream;
+import java.security.AccessController;
+import java.security.ProtectionDomain;
 import java.util.jar.JarFile;
 
 /**
@@ -59,6 +61,30 @@ public class SharedSecrets {
   private static JavaAWTAccess javaAWTAccess;
   private static JavaOISAccess javaOISAccess;
   private static JavaObjectInputStreamAccess javaObjectInputStreamAccess;
+  
+  private static JavaSecurityAccess javaSecurityAccess;
+  private static JavaSecurityProtectionDomainAccess javaSecurityProtectionDomainAccess;
+  
+  public static void setJavaSecurityAccess(JavaSecurityAccess jsa) {
+    javaSecurityAccess = jsa;
+  }
+  
+  public static JavaSecurityAccess getJavaSecurityAccess() {
+    if (javaSecurityAccess == null) {
+      unsafe.ensureClassInitialized(AccessController.class);
+    }
+    return javaSecurityAccess;
+  }
+  
+  public static void setJavaSecurityProtectionDomainAccess(JavaSecurityProtectionDomainAccess jspda) {
+    javaSecurityProtectionDomainAccess = jspda;
+  }
+
+  public static JavaSecurityProtectionDomainAccess getJavaSecurityProtectionDomainAccess() {
+    if(javaSecurityProtectionDomainAccess == null)
+      unsafe.ensureClassInitialized(ProtectionDomain.class);
+    return javaSecurityProtectionDomainAccess;
+  }
 
   // (required for EnumSet ops)
   public static JavaLangAccess getJavaLangAccess() {

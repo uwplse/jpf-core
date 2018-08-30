@@ -30,6 +30,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.net.URL;
+import java.security.AllPermission;
+import java.security.Permissions;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -343,7 +346,10 @@ public final class Class<T> implements Serializable, GenericDeclaration, Type, A
   }
   
   public java.security.ProtectionDomain getProtectionDomain() {
-    throw new UnsupportedOperationException();
+    Permissions p = new Permissions();
+    p.add(new AllPermission());
+    ProtectionDomain pd = new ProtectionDomain(null, p, null, null);
+    return pd;
   }
 
   void setProtectionDomain0(java.security.ProtectionDomain pd) {
