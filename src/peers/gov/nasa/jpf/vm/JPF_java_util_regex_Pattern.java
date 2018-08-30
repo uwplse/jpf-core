@@ -38,5 +38,13 @@ public class JPF_java_util_regex_Pattern extends NativePeer {
 
     return env.newStringArray(result);
   }
-
+  
+  @MJI
+  public int quote__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int clsObjRef, int pattRef) {
+    if(pattRef == MJIEnv.NULL) {
+      env.throwException("java.lang.NullPointerException");
+      return -1;
+    }
+    return env.newString(Pattern.quote(env.getStringObject(pattRef)));
+  }
 }

@@ -44,6 +44,8 @@ public class Pattern {
     return new Matcher(this, input);
   }
   
+  public static native String quote(String s);
+  
   public String pattern() {
     return regex;
   }
