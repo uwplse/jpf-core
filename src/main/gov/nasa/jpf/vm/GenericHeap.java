@@ -41,7 +41,7 @@ import gov.nasa.jpf.util.Processor;
  */
 public abstract class GenericHeap implements Heap, Iterable<ElementInfo> {
   
-  static abstract class GenericHeapMemento implements Memento<Heap> {
+  protected static abstract class GenericHeapMemento implements Memento<Heap> {
     // those can be simply copied
     int attributes;
     IntVector pinDownList;

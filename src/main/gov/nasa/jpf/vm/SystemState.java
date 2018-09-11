@@ -59,9 +59,9 @@ public class SystemState {
    * for restorable states. Currently, the gate for this is VM.getRestorableState(),
    * but this could be bypassed.
    */
-  static class Memento {
-    ChoiceGenerator<?> curCg;  // the ChoiceGenerator for the current transition
-    ChoiceGenerator<?> nextCg;
+  public static class Memento {
+    public ChoiceGenerator<?> curCg;  // the ChoiceGenerator for the current transition
+    public ChoiceGenerator<?> nextCg;
     int atomicLevel;
     ChoicePoint trace;
     ThreadInfo execThread;
@@ -130,7 +130,7 @@ public class SystemState {
    * be a lot more expensive since it has to deep copy CGs so that we have
    * the state of the parent CGs restored properly
    */
-  static class RestorableMemento extends Memento {
+  public static class RestorableMemento extends Memento {
     RestorableMemento (SystemState ss){
       super(ss);
       
@@ -168,8 +168,8 @@ public class SystemState {
 
   int id;                   /** the state id */
 
-  ChoiceGenerator<?> nextCg;   // the ChoiceGenerator for the next transition
-  ChoiceGenerator<?>  curCg;   // the ChoiceGenerator used in the current transition
+  protected ChoiceGenerator<?> nextCg;   // the ChoiceGenerator for the next transition
+  protected ChoiceGenerator<?>  curCg;   // the ChoiceGenerator used in the current transition
   ThreadInfo execThread;    // currently executing thread, reset by ThreadChoiceGenerators
   
   // on-demand list of optional restorers that run if we backtrack to this state
@@ -537,7 +537,7 @@ public class SystemState {
   }
 
   
-  public Object getBacktrackData () {
+  public Memento getBacktrackData () {
     return new Memento(this);
   }
 
@@ -545,7 +545,7 @@ public class SystemState {
     ((Memento) backtrackData).backtrack( this);
   }
 
-  public Object getRestoreData(){
+  public RestorableMemento getRestoreData(){
     return new RestorableMemento(this);
   }
   

@@ -157,7 +157,7 @@ public class ThreadInfo extends InfoObject
   // (we don't want to expose/hardwire ThreadList implementation)
   // note also that the ThreadList is allowed to move this thread around, in which
   // case update is the ThreadLists responsibility
-  protected int tlIdx;
+  public int tlIdx;
 
   
   //--- the invariants
@@ -246,7 +246,7 @@ public class ThreadInfo extends InfoObject
    */
   int lockRef = MJIEnv.NULL;
 
-  Memento<ThreadInfo> cachedMemento; // cache for unchanged ThreadInfos
+  public Memento<ThreadInfo> cachedMemento; // cache for unchanged ThreadInfos
 
 
   static class TiMemento implements Memento<ThreadInfo> {
