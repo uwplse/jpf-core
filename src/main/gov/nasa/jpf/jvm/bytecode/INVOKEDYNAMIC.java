@@ -46,7 +46,7 @@ public class INVOKEDYNAMIC extends Instruction {
   // are captured from the lexical scope. Note that for instance lambda methods 
   // the first captured variable always represents "this"
   String[] freeVariableTypeNames;
-  byte[] freeVariableTypes;
+  public byte[] freeVariableTypes;
   
   String functionalInterfaceName;
   
