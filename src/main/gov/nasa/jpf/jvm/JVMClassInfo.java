@@ -106,7 +106,6 @@ public class JVMClassInfo extends ClassInfo {
         
       } else if (name == ClassFile.BOOTSTRAP_METHOD_ATTR) {
         cf.parseBootstrapMethodAttr(this, JVMClassInfo.this);
-        
       }
     }
     
@@ -306,8 +305,7 @@ public class JVMClassInfo extends ClassInfo {
         
       } else if (name == ClassFile.RUNTIME_VISIBLE_TYPE_ANNOTATIONS_ATTR) {
         cf.parseTypeAnnotationsAttr(this, curMi);
-      }      
-      
+      }
     }
 
     //--- current methods throws list
@@ -370,6 +368,8 @@ public class JVMClassInfo extends ClassInfo {
         
       } else if (name == ClassFile.RUNTIME_VISIBLE_TYPE_ANNOTATIONS_ATTR){
         cf.parseTypeAnnotationsAttr(this, tag);
+      } else if (name == ClassFile.STACK_MAP_TABLE_ATTR && parseStackFrames) {
+        cf.parseStackMapTable(this, curMi);
       }
     }
 
@@ -696,6 +696,7 @@ public class JVMClassInfo extends ClassInfo {
   protected static boolean nestedInit;
   protected static StringSetMatcher includeNestedInit;
   protected static StringSetMatcher excludeNestedInit;
+  protected static boolean parseStackFrames;
 
   protected static boolean init (Config config){
     nestedInit = config.getBoolean("jvm.nested_init", false);
@@ -703,6 +704,7 @@ public class JVMClassInfo extends ClassInfo {
       includeNestedInit =  StringSetMatcher.getNonEmpty(config.getStringArray("jvm.nested_init.include"));
       excludeNestedInit = StringSetMatcher.getNonEmpty(config.getStringArray("jvm.nested_init.exclude"));
     }
+    parseStackFrames = config.getBoolean("jvm.parse_stack_frames", false);
 
     return true;
   }

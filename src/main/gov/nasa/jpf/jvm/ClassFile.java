@@ -19,11 +19,15 @@
 package gov.nasa.jpf.jvm;
 
 import java.io.File;
+import java.util.Arrays;
 
 import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.util.BailOut;
 import gov.nasa.jpf.util.BinaryClassSource;
 import gov.nasa.jpf.vm.ClassParseException;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.Types;
 
 /**
  * class to read and dissect Java classfile contents (as specified by the Java VM
@@ -55,6 +59,7 @@ public class ClassFile extends BinaryClassSource {
   public static final int REF_INVOKESPECIAL = 7;
   public static final int REF_NEW_INVOKESPECIAL = 8;
   public static final int REF_INVOKEINTERFACE = 9;
+  public static final byte[] EMPTY_BYTES = new byte[0];
 
   // used to store types in cpValue[]
   public static enum CpInfo {
@@ -151,6 +156,7 @@ public class ClassFile extends BinaryClassSource {
   public static final String RUNTIME_INVISIBLE_ANNOTATIONS_ATTR = "RuntimeInvisibleAnnotations";
   public static final String RUNTIME_VISIBLE_ANNOTATIONS_ATTR = "RuntimeVisibleAnnotations";
   public static final String RUNTIME_VISIBLE_TYPE_ANNOTATIONS_ATTR = "RuntimeVisibleTypeAnnotations";
+  public static final String STACK_MAP_TABLE_ATTR = "StackMapTable";
 
   //--- standard field attributes
   public static final String CONST_VALUE_ATTR = "ConstantValue";
@@ -181,7 +187,7 @@ public class ClassFile extends BinaryClassSource {
   public static final String LINE_NUMBER_TABLE_ATTR = "LineNumberTable";
   public static final String LOCAL_VAR_TABLE_ATTR = "LocalVariableTable";
 
-  protected final static String[] stdCodeAttrs = { LINE_NUMBER_TABLE_ATTR, LOCAL_VAR_TABLE_ATTR, RUNTIME_VISIBLE_TYPE_ANNOTATIONS_ATTR };
+  protected final static String[] stdCodeAttrs = { LINE_NUMBER_TABLE_ATTR, LOCAL_VAR_TABLE_ATTR, RUNTIME_VISIBLE_TYPE_ANNOTATIONS_ATTR, STACK_MAP_TABLE_ATTR };
 
 
   //--- standard class attributes
@@ -2038,8 +2044,127 @@ public class ClassFile extends BinaryClassSource {
 //     } local_variable_type_table[local_variable_type_table_length];
 //   }
 
+  /*
+      StackMapTable_attribute {
+        u2              attribute_name_index;
+        u4              attribute_length;
+        u2              number_of_entries;
+        stack_map_frame entries[number_of_entries];
+      }
+   */
+  public void parseStackMapTable(final ClassFileReader reader, final MethodInfo curMi) {
+    int numEntries = readU2();
+    int[] offsets = new int[numEntries + 1];
+    offsets[0] = 0;
+    byte[][] localTypes = new byte[numEntries + 1][];
+    byte[][] stackTypes = new byte[numEntries + 1][];
+    localTypes[0] = new byte[curMi.getNumberOfArguments() + (curMi.isStatic() ? 0 : 1)];
+    int idx = 0;
+    if(!curMi.isStatic()) {
+      localTypes[0][idx++] = Types.T_REFERENCE;
+    }
+    for(byte b : curMi.getArgumentTypes()) {
+      if(b == Types.T_ARRAY) {
+        localTypes[0][idx++] = Types.T_REFERENCE;
+      } else {
+        localTypes[0][idx++] = b;
+      }
+    }
+    stackTypes[0] = EMPTY_BYTES;
+    for(int i  = 0; i < numEntries; i++) {
+      int tag = readUByte();
+      int offsetDelta;
+      byte[] currLocs = localTypes[i];
+      byte[] nextLocs, nextStack;
+      if(tag >= 0 && tag <= 63) {
+        offsetDelta = tag;
+        nextLocs = currLocs;
+        nextStack = EMPTY_BYTES;
+      } else if(tag >= 64 && tag <= 127) {
+        nextLocs = currLocs;
+        nextStack = getSingletonStack();
+        offsetDelta = tag - 64;
+      } else if(tag == 247) {
+        offsetDelta = readU2();
+        nextLocs = currLocs;
+        nextStack = getSingletonStack();
+      } else if(tag >= 248 && tag <= 250) {
+        int choppedK = 251 - tag;
+        nextStack = EMPTY_BYTES;
+        nextLocs = Arrays.copyOf(currLocs, currLocs.length - choppedK);
+        offsetDelta = readU2();
+      } else if(tag == 251) {
+        nextLocs = currLocs;
+        nextStack = EMPTY_BYTES;
+        offsetDelta = readU2();
+      } else if(tag >= 252 && tag <= 254) {
+        offsetDelta = readU2();
+        int nLocs = tag - 251;
+        nextStack = EMPTY_BYTES;
+        nextLocs = Arrays.copyOf(currLocs, currLocs.length + nLocs);
+        for(int j = 0; j < nLocs; j++) {
+          nextLocs[currLocs.length + j] = this.parseVerificationType();
+        }
+      } else if(tag == 255) {
+        offsetDelta = readU2();
+        int nLocs = readU2();
+        nextLocs = new byte[nLocs];
+        for(int j = 0; j < nLocs; j++) {
+          nextLocs[j] = parseVerificationType();
+        }
+        int nStack = readU2();
+        nextStack = new byte[nStack];
+        for(int j = 0; j < nStack; j++) {
+          nextStack[j] = parseVerificationType();
+        }
+      } else {
+        throw new RuntimeException();
+      }
+      int newOffset;
+      if(i == 0) {
+        newOffset = offsetDelta;
+      } else {
+        newOffset = offsets[i] + offsetDelta + 1;
+      }
+      offsets[i+1] = newOffset;
+      stackTypes[i+1] = nextStack;
+      localTypes[i+1] = nextLocs;
+    }
+    curMi.addAttr(new StackFrameMap(offsets, localTypes, stackTypes));
+  }
 
+  private byte[] getSingletonStack() {
+    byte b = this.parseVerificationType();
+    return new byte[]{ b };
+  }
 
+  private byte parseVerificationType() {
+    int tag = readUByte();
+    switch(tag) {
+    case 0: // TOP
+      return Types.T_NONE;
+    case 1: // INT
+      return Types.T_INT;
+    case 2: // FLOAT
+      return Types.T_FLOAT;
+    case 3: // DOUBLE
+      return Types.T_DOUBLE;
+    case 4: // LONG
+      return Types.T_LONG;
+    case 5: // NULL
+      return Types.T_REFERENCE;
+    case 6: // UninitializedThis
+      return Types.T_REFERENCE;
+    case 7: // Object
+      readU2(); // ignore CP index
+      return Types.T_REFERENCE;
+    case 8: // Uninitialized Variable
+      readU2(); // the index of the new instruction
+      return Types.T_REFERENCE;
+    default:
+      throw new RuntimeException("Unrecognize verification type tag: " + tag);
+    }
+  }
 
   public void parseBytecode(JVMByteCodeReader reader, Object tag, int codeLength){
     int localVarIndex;
