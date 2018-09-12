@@ -128,5 +128,9 @@ public abstract class FieldInstruction extends Instruction implements ReadOrWrit
     // override if this insn can be part of a monitorenter code pattern
     return false;
   }
-  
+
+  public String getFieldType() {
+    return ftype;
+  }
+
 }
