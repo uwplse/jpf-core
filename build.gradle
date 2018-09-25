@@ -243,3 +243,13 @@ test {
 }
 
 defaultTasks "buildJars"
+
+configurations {
+	annotations
+	peers
+}
+
+artifacts {
+	peers createJpfJar
+	annotations createJpfJar
+}
