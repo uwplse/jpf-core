@@ -206,7 +206,11 @@ public abstract class Instruction implements Cloneable, InstructionInterface {
   
   @Override
   public String getMnemonic() {
-    String s = getClass().getSimpleName();
+    Class<?> klass = getClass();
+    while(klass.isAnonymousClass()) {
+      klass = klass.getSuperclass();
+    }
+    String s = klass.getSimpleName();
     return s.toLowerCase();
   }
 
