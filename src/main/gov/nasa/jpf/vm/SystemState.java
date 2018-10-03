@@ -123,6 +123,10 @@ public class SystemState {
       ss.execThread = execThread;
       **/
     }
+
+    @Override public String toString() {
+      return "CURR: " + curCg + " || NEXT: " + nextCg;
+    }
   }
   
   /**
