@@ -60,6 +60,8 @@ public class ClassFile extends BinaryClassSource {
   public static final int REF_NEW_INVOKESPECIAL = 8;
   public static final int REF_INVOKEINTERFACE = 9;
   public static final byte[] EMPTY_BYTES = new byte[0];
+  public int major;
+  public int minor;
 
   // used to store types in cpValue[]
   public static enum CpInfo {
@@ -912,8 +914,8 @@ public class ClassFile extends BinaryClassSource {
       }
 
       // we don't do much with the version numbers yet
-      int minor = readU2();
-      int major = readU2();
+      this.minor = readU2();
+      this.major = readU2();
 
       // get the const pool
       int cpCount = readU2();
@@ -2044,6 +2046,22 @@ public class ClassFile extends BinaryClassSource {
 //     } local_variable_type_table[local_variable_type_table_length];
 //   }
 
+  public static void populateInitialFrame(byte[][] stackTypes, byte[][] localTypes, MethodInfo curMi) {
+    localTypes[0] = new byte[curMi.getNumberOfArguments() + (curMi.isStatic() ? 0 : 1)];
+    int idx = 0;
+    if(!curMi.isStatic()) {
+      localTypes[0][idx++] = Types.T_REFERENCE;
+    }
+    for(byte b : curMi.getArgumentTypes()) {
+      if(b == Types.T_ARRAY) {
+        localTypes[0][idx++] = Types.T_REFERENCE;
+      } else {
+        localTypes[0][idx++] = b;
+      }
+    }
+    stackTypes[0] = EMPTY_BYTES;
+  }
+
   /*
       StackMapTable_attribute {
         u2              attribute_name_index;
@@ -2058,19 +2076,7 @@ public class ClassFile extends BinaryClassSource {
     offsets[0] = 0;
     byte[][] localTypes = new byte[numEntries + 1][];
     byte[][] stackTypes = new byte[numEntries + 1][];
-    localTypes[0] = new byte[curMi.getNumberOfArguments() + (curMi.isStatic() ? 0 : 1)];
-    int idx = 0;
-    if(!curMi.isStatic()) {
-      localTypes[0][idx++] = Types.T_REFERENCE;
-    }
-    for(byte b : curMi.getArgumentTypes()) {
-      if(b == Types.T_ARRAY) {
-        localTypes[0][idx++] = Types.T_REFERENCE;
-      } else {
-        localTypes[0][idx++] = b;
-      }
-    }
-    stackTypes[0] = EMPTY_BYTES;
+    populateInitialFrame(stackTypes, localTypes, curMi);
     for(int i  = 0; i < numEntries; i++) {
       int tag = readUByte();
       int offsetDelta;

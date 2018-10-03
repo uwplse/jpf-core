@@ -358,6 +358,17 @@ public class JVMClassInfo extends ClassInfo {
       cb.installCode();
     }
 
+    @Override public void setCodeAttributesDone(final ClassFile cf, final Object tag) {
+      if(curMi.getAttr(StackFrameMap.class) == null && cf.major >= 50) {
+        // we need an implicit stack frame.
+        byte[][] localTypes = new byte[1][curMi.getMaxLocals()];
+        byte[][] stackTypes = new byte[1][curMi.getMaxStack()];
+        int[] offsets = {0};
+        ClassFile.populateInitialFrame(stackTypes, localTypes, curMi);
+        curMi.addAttr(new StackFrameMap(offsets, localTypes, stackTypes));
+      }
+    }
+
     @Override
     public void setCodeAttribute (ClassFile cf, Object tag, int attrIndex, String name, int attrLength) {
       if (name == ClassFile.LINE_NUMBER_TABLE_ATTR) {
