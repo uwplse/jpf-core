@@ -139,7 +139,6 @@ public abstract class ElementInfo implements Cloneable {
   // by state-matching. Value interpretation depends on the configured Serializer
   protected int sid;
 
-
   // helpers for state storage/restore processing, to avoid explicit iterators on
   // respective ElementInfo containers (heap,statics)
   
@@ -152,7 +151,7 @@ public abstract class ElementInfo implements Cloneable {
       ei.markUnchanged();
     }        
   }
-  static Restorer restorer = new Restorer();
+  public static Restorer restorer = new Restorer();
   
   static class Storer implements Processor<ElementInfo> {
     @Override
@@ -1654,6 +1653,21 @@ public abstract class ElementInfo implements Cloneable {
 
       return ei;
       
+    } catch (CloneNotSupportedException e) {
+      throw new InternalError("should not happen");
+    }
+  }
+
+  public ElementInfo cloneNoFields() {
+    try {
+      ElementInfo ei = (ElementInfo) super.clone();
+      ei.fields = null;
+      ei.monitor = monitor.clone();
+
+      ei.cachedMemento = null;
+
+      return ei;
+
     } catch (CloneNotSupportedException e) {
       throw new InternalError("should not happen");
     }
